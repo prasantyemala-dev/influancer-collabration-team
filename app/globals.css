@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #008080; /* Teal */
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #FFA500; /* Orange */
+  --color-secondary-foreground: #ffffff;
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-border: #e2e8f0;
+}
+
+/* Custom Utilities */
+.btn-primary {
+  @apply bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-teal-700 px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer;
+}
+
+.btn-secondary {
+  @apply bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)] hover:bg-orange-600 px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer;
+}
+
+.btn-outline {
+  @apply border border-[var(--color-border)] bg-transparent hover:bg-[var(--color-muted)] px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer;
+}
+
+.input-field {
+  @apply w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)];
+}
+
+.card {
+  @apply bg-[var(--color-card)] text-[var(--color-card-foreground)] rounded-xl border border-[var(--color-border)] shadow-sm;
+}
+
+body {
+  background-color: #f8fafc;
+  color: var(--color-foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  padding-bottom: 80px; /* Space for bottom nav */
+}
