@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  password        String?  // Optional for OAuth
+  profile_pic     String?
+  channel_url     String?
+  category_tags   String? // JSON string or comma-separated
+  subscriber_range String? // Enum as String: "0-1k", "1k-10k", "10k-100k", "100k+"
+  skills          String? // JSON string or comma-separated
+  bio             String?
+
+  // Location
+  lat             Float?
+  lng             Float?
+  city            String?
+  country         String?
+
+  verified        Boolean  @default(false)
+  created_at      DateTime @default(now())
+
+  // Relations
+  posts           Post[]
+  sent_requests   CollabRequest[] @relation("SentRequests")
+  received_requests CollabRequest[] @relation("ReceivedRequests")
+  messages_sent   Message[] @relation("SentMessages")
+  messages_received Message[] @relation("ReceivedMessages")
+  threads         Thread[] @relation("UserThreads")
+  payments        Payment[]
+  reports_made    Report[] @relation("Reporter")
+  reports_received Report[] @relation("ReportedUser")
+}
+
+model Post {
+  id          String   @id @default(uuid())
+  creator_id  String
+  creator     User     @relation(fields: [creator_id], references: [id])
+  title       String
+  description String
+  date_time   DateTime?
+
+  // Location
+  lat         Float?
+  lng         Float?
+  city        String?
+
+  pay_amount  String?
+  tags        String? // JSON string
+  status      String   @default("open") // open, closed
+  created_at  DateTime @default(now())
+
+  collab_requests CollabRequest[]
+  reports         Report[]
+}
+
+model CollabRequest {
+  id            String   @id @default(uuid())
+  from_user_id  String
+  from_user     User     @relation("SentRequests", fields: [from_user_id], references: [id])
+  to_user_id    String
+  to_user       User     @relation("ReceivedRequests", fields: [to_user_id], references: [id])
+  post_id       String?
+  post          Post?    @relation(fields: [post_id], references: [id])
+
+  message       String
+  proposed_date DateTime?
+  status        String   @default("pending") // pending, accepted, declined, cancelled
+  created_at    DateTime @default(now())
+}
+
+model Thread {
+  id                   String    @id @default(uuid())
+  // SQLite doesn't support arrays of scalars well for relations, so we rely on implicits or join tables.
+  // But Prisma handles implicit many-to-many.
+  participants         User[]    @relation("UserThreads")
+
+  last_message_preview String?
+  last_updated         DateTime  @default(now())
+
+  messages             Message[]
+}
+
+model Message {
+  id           String   @id @default(uuid())
+  thread_id    String
+  thread       Thread   @relation(fields: [thread_id], references: [id])
+  from_user_id String
+  from_user    User     @relation("SentMessages", fields: [from_user_id], references: [id])
+  to_user_id   String
+  to_user      User     @relation("ReceivedMessages", fields: [to_user_id], references: [id])
+
+  text         String
+  attachments  String? // JSON string of URLs
+  read         Boolean @default(false)
+  created_at   DateTime @default(now())
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  user_id           String
+  user              User     @relation(fields: [user_id], references: [id])
+  amount            Float
+  type              String   // subscription, listing_fee, commission
+  stripe_payment_id String?
+  status            String
+  created_at        DateTime @default(now())
+}
+
+model Report {
+  id               String   @id @default(uuid())
+  reporter_id      String
+  reporter         User     @relation("Reporter", fields: [reporter_id], references: [id])
+
+  reported_user_id String?
+  reported_user    User?    @relation("ReportedUser", fields: [reported_user_id], references: [id])
+
+  reported_post_id String?
+  reported_post    Post?    @relation(fields: [reported_post_id], references: [id])
+
+  reason           String
+  status           String   @default("pending")
+  created_at       DateTime @default(now())
+}
